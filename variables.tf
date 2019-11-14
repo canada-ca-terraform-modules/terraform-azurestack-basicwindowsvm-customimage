@@ -102,9 +102,7 @@ variable "vm_size" {
 }
 
 variable "storage_image_reference" {
-  default = {
-    id = "someid"
-  }
+  description = "Resource id of the custom image"
 }
 
 variable "plan" {
@@ -116,8 +114,8 @@ variable "storage_os_disk" {
   default = {
     caching       = "ReadWrite"
     create_option = "FromImage"
-    os_type       = "Windows"
-    disk_size_gb  = 40
+    os_type       = null
+    disk_size_gb  = null
   }
 }
 

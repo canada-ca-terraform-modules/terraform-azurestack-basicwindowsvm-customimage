@@ -18,54 +18,56 @@ The following security controls can be met through configuration of this templat
 ## Usage
 
 ```terraform
-module "jumpbox" {
-  source = "github.com/canada-ca-terraform-modules/terraform-azurestack-basicwindowsvm?ref=20191024.1"
-
-  name                              = "jumpbox"
-  resource_group_name               = "some-RG-Name"
-  admin_username                    = "someusername"
-  admin_password                    = "${azurerm_key_vault_secret.thevmpassword.name}"
-  nic_subnetName                    = "some-subnet-name"
-  nic_vnetName                      = "some-vnet-name"
-  nic_vnet_resource_group_name      = "some-vnet-resourcegroup-name"
-  vm_size                           = "Standard_D2_v3"
+module "cio-cust" {
+  source                       = "github.com/canada-ca-terraform-modules/terraform-azurestack-basicwindowsvm-customimage?ref=20191114.1"
+  location                     = "ssccentral"
+  name                         = "cio-rds01"
+  resource_group_name          = azurestack_resource_group.RDS-rg.name
+  admin_username               = "azureadmin"
+  admin_password               = "Som3S3cureP@$$w0rd"
+  vm_size                      = "Standard_F2"
+  public_ip                    = true
+  use_nic_nsg                  = false
+  storage_image_reference      = "/subscriptions/fa0607f6-0aa3-44b3-8a6f-fff871c65adc/resourceGroups/CIO-DevVMs-rg/providers/Microsoft.Compute/images/Win10InsiderPreview17093"
+  nic_subnetName               = azurestack_subnet.paz-snet.name
+  nic_vnetName                 = azurestack_virtual_network.RDS-vnet.name
+  nic_vnet_resource_group_name = azurestack_resource_group.RDS-rg.name
 }
 ```
 
 ## Variables Values
 
-| Name                                    | Type   | Required | Value                                                                                                                                                                                                       |
-| --------------------------------------- | ------ | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| name                                    | string | yes      | Name of the vm                                                                                                                                                                                              |
-| resource_group_name                     | string | yes      | Name of the resourcegroup that will contain the VM resources                                                                                                                                                |
-| admin_username                          | string | yes      | Name of the VM admin account                                                                                                                                                                                |
-| admin_password                          | string | yes      | Password of the VM admin account                                                                                                                                                                            |
-| vm_size                                 | string | yes      | Specifies the desired size of the Virtual Machine. Eg: Standard_F4                                                                                                                                          |
-| nic_vnet_resource_group_name            | string | yes      | Name of the resourcegroup containing the VNET                                                                                                                                                               |
-| nic_vnetName                            | string | yes      | Name of the VNET the subnet is part of                                                                                                                                                                      |
-| nic_subnetName                          | string | yes      | Name of the subnet to which the VM NIC will connect to                                                                                                                                                      |
-| nic_enable_ip_forwarding                | bool   | no       | Enables IP Forwarding on the NIC. Default: false                                                                                                                                                            |
-| nic_enable_accelerated_networkingg      | bool   | no       | Enables Azure Accelerated Networking using SR-IOV. Only certain VM instance sizes are supported. Default: false                                                                                             |
-| nic_ip_configuration                    | object | no       | Defines how a private IP address is assigned. Options are Static or Dynamic. In case of Static also specifiy the desired privat IP address. Default: Dynamic - [ip configuration](#ip-configuration-object) |
-| public_ip                               | bool   | no       | Does the VM require a public IP. true or false. Default: false                                                                                                                                              |
-| dnsServers                              | list   | no       | List of DNS servers IP addresses as string to use for this NIC, overrides the VNet-level dns server list - [dns servers](#dns-servers-list)                                                                 |
-| availability_set_id                     | string | no       | Id of the availaiblity set to join. Default is null.                                                                                                                                                        |
-| load_balancer_backend_address_pools_ids | List   | no       | List of Load Balancer Backend Address Pool IDs references to which this NIC belongs. Default: [[]]                                                                                                          |
-| location                                | string | no       | Azure location for resources. Default: canadacentral                                                                                                                                                        |
-| tags                                    | object | no       | Object containing a tag values - [tags pairs](#tag-object)                                                                                                                                                  |
-| data_disk_sizes_gb                      | list   | no       | List of data disk sizes in gigabytes required for the VM. - [data disk](#data-disk-list)                                                                                                                    |
-| os_managed_disk_type                    | string | no       | Specifies the type of OS Managed Disk which should be created. Possible values are Standard_LRS or Premium_LRS. Default: Standard_LRS                                                                       |
-| data_managed_disk_type                  | string | no       | Specifies the type of Data Managed Disk which should be created. Possible values are Standard_LRS or Premium_LRS. Default: Standard_LRS                                                                     |
-| storage_image_reference                 | object | no       | Specify the storage image used to create the VM. Default is 2016-Datacenter. - [storage image](#storage-image-reference-object)                                                                             |
-| plan                                    | object | no       | Specify the plan used to create the VM. Default is null. - [plan](#plan-object)                                                                                                                             |
-| storage_os_disk                         | object | no       | Storage OS Disk configuration. Default: ReadWrite from image.                                                                                                                                               |
-| custom_data                             | string | no       | some custom ps1 code to execute. Eg: ${file("serverconfig/jumpbox-init.sh")}                                                                                                                                |
-| security_rules                          | list   | no       | [Security rules](#securityrules-object) to be applied to the VM nic through an NSG                                                                                                                          |
-| license_type                            | string | no       | BYOL license type for those with Azure Hybrid Benefit                                                                                                                                                       |
-| boot_diagnostic                         | bool   | no       | Should a boot be turned on or not. Default: false                                                                                                                                                           |
-| use_nic_nsg                             | bool   | no       | Should an NSG be created and assigned to the VM NIC - Default: true                                                                                                                                         |
-| vm_depends_on                           | list   | no       | List of resources the VM depends on before being built. - Default: nil - Ex: ["${azurestack_subnet.paz-snet}", "${azurestack_virtual_network.RDS-vnet}"]                                                    |
-| nic_depends_on                          | list   | no       | List of resources the NIC depends on before being built. - Default: nil - Ex: ["${azurestack_subnet.ScDZCNR-CISO_CoreNetwork-PAZ-snet.name}"]                                                               |
+| Name                                    | Type   | Required | Value                                                                                                                                                                                                          |
+| --------------------------------------- | ------ | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| name                                    | string | yes      | Name of the vm                                                                                                                                                                                                 |
+| resource_group_name                     | string | yes      | Name of the resourcegroup that will contain the VM resources                                                                                                                                                   |
+| admin_username                          | string | yes      | Name of the VM admin account                                                                                                                                                                                   |
+| admin_password                          | string | yes      | Password of the VM admin account                                                                                                                                                                               |
+| vm_size                                 | string | yes      | Specifies the desired size of the Virtual Machine. Eg: Standard_F4                                                                                                                                             |
+| nic_vnet_resource_group_name            | string | yes      | Name of the resourcegroup containing the VNET                                                                                                                                                                  |
+| nic_vnetName                            | string | yes      | Name of the VNET the subnet is part of                                                                                                                                                                         |
+| nic_subnetName                          | string | yes      | Name of the subnet to which the VM NIC will connect to                                                                                                                                                         |
+| nic_enable_ip_forwarding                | bool   | no       | Enables IP Forwarding on the NIC. Default: false                                                                                                                                                               |
+| nic_enable_accelerated_networkingg      | bool   | no       | Enables Azure Accelerated Networking using SR-IOV. Only certain VM instance sizes are supported. Default: false                                                                                                |
+| nic_ip_configuration                    | object | no       | Defines how a private IP address is assigned. Options are Static or Dynamic. In case of Static also specifiy the desired privat IP address. Default: Dynamic - [ip configuration](#ip-configuration-object)    |
+| public_ip                               | bool   | no       | Does the VM require a public IP. true or false. Default: false                                                                                                                                                 |
+| dnsServers                              | list   | no       | List of DNS servers IP addresses as string to use for this NIC, overrides the VNet-level dns server list - [dns servers](#dns-servers-list)                                                                    |
+| availability_set_id                     | string | no       | Id of the availaiblity set to join. Default is null.                                                                                                                                                           |
+| load_balancer_backend_address_pools_ids | List   | no       | List of Load Balancer Backend Address Pool IDs references to which this NIC belongs. Default: [[]]                                                                                                             |
+| location                                | string | no       | Azure location for resources. Default: canadacentral                                                                                                                                                           |
+| tags                                    | object | no       | Object containing a tag values - [tags pairs](#tag-object)                                                                                                                                                     |
+| data_disk_sizes_gb                      | list   | no       | List of data disk sizes in gigabytes required for the VM. - [data disk](#data-disk-list)                                                                                                                       |
+| os_managed_disk_type                    | string | no       | Specifies the type of OS Managed Disk which should be created. Possible values are Standard_LRS or Premium_LRS. Default: Standard_LRS                                                                          |
+| data_managed_disk_type                  | string | no       | Specifies the type of Data Managed Disk which should be created. Possible values are Standard_LRS or Premium_LRS. Default: Standard_LRS                                                                        |
+| storage_image_reference                 | object | no       | Specify the custom storage image id used to create the VM. - Eg: /subscriptions/fa0607f6-0aa3-44b3-8a6f-fff871c65adc/resourceGroups/CIO-DevVMs-rg/providers/Microsoft.Compute/images/Win10InsiderPreview17093) |
+| storage_os_disk                         | object | no       | Storage OS Disk configuration. Default: ReadWrite from image. - [storage os disk object](#storage-os-disk-object)                                                                                              |
+| custom_data                             | string | no       | some custom ps1 code to execute. Eg: ${file("serverconfig/jumpbox-init.sh")}                                                                                                                                   |
+| security_rules                          | list   | no       | [Security rules](#securityrules-object) to be applied to the VM nic through an NSG                                                                                                                             |
+| license_type                            | string | no       | BYOL license type for those with Azure Hybrid Benefit                                                                                                                                                          |
+| boot_diagnostic                         | bool   | no       | Should a boot be turned on or not. Default: false                                                                                                                                                              |
+| use_nic_nsg                             | bool   | no       | Should an NSG be created and assigned to the VM NIC - Default: true                                                                                                                                            |
+| vm_depends_on                           | list   | no       | List of resources the VM depends on before being built. - Default: nil - Ex: ["${azurestack_subnet.paz-snet}", "${azurestack_virtual_network.RDS-vnet}"]                                                       |
+| nic_depends_on                          | list   | no       | List of resources the NIC depends on before being built. - Default: nil - Ex: ["${azurestack_subnet.ScDZCNR-CISO_CoreNetwork-PAZ-snet.name}"]                                                                  |
 
 ### tag object
 
@@ -122,41 +124,23 @@ nic_ip_configuration = {
 }
 ```
 
-### #storage image reference object
+### storage os disk object
 
-| Name      | Type       | Required           | Value                                                                                              |
-| --------- | ---------- | ------------------ | -------------------------------------------------------------------------------------------------- |
-| publisher | string     | yes                | The image publisher.                                                                               |
-| offer     | string     | yes                | Specifies the offer of the platform image or marketplace image used to create the virtual machine. |
-| sku       | string     | yes                | The image SKU.                                                                                     |
-| version   | string yes | The image version. |
-
-Example variable:
-
-```hcl
-storage_image_reference = {
-  publisher = "MicrosoftWindowsServer"
-  offer     = "WindowsServer"
-  sku       = "2016-Datacenter"
-  version   = "latest"
-}
-```
-
-### plan object
-
-| Name      | Type   | Required | Value               |
-| --------- | ------ | -------- | ------------------- |
-| name      | string | yes      | The plan nome.      |
-| publisher | string | yes      | The publisher name. |
-| product   | string | yes      | The product name.   |
+| Name          | Type   | Required | Value                                               |
+| ------------- | ------ | -------- | --------------------------------------------------- |
+| caching       | string | yes      | Caching options - Default: ReadWrine                |
+| create_option | string | yes      | Creation options - Default: FromImage               |
+| os_type       | string | yes      | OS Type (Linux or Windows) - Default: Same as image |
+| disk_size_gb  | int    | yes      | Desired OS Disk Size in GB - Default: Same as image |
 
 Example variable:
 
 ```hcl
-plan = {
-    name      = "fortinet-fortimanager"
-    publisher = "fortinet"
-    product   = "fortinet-fortimanager"
+storage_os_disk = {
+  caching       = "ReadWrite"
+  create_option = "FromImage"
+  os_type       = "Windows"
+  disk_size_gb  = 40
 }
 ```
 
@@ -232,11 +216,4 @@ domainToJoin = {
 
 | Date     | Release    | Change                                           |
 | -------- | ---------- | ------------------------------------------------ |
-| 20191024 | 20191024.1 | Add support for optional nic_depends_on          |
-| 20191023 | 20191023.1 | Optional support for not creating NIC NSG        |
-| 20191015 | 20191015.1 | Adopt new VM resource naming convention          |
-| 20191010 | 20191010.1 | Adding support for os and data managed disk type |
-|          |            | Add support for LB backend pool IDs              |
-|          |            | Adding support for availabilityset               |
-|          |            | Adding boot diagnostic option                    |
-| 20190923 | 20190923.1 | 1st release                                      |
+| 20191114 | 20191114.1 | 1st release                                      |

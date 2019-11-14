@@ -34,10 +34,7 @@ module "cio-cust" {
   vm_size                      = "Standard_F2"
   public_ip                    = true
   use_nic_nsg                  = false
-  storage_image_reference      = {
-    id = "/subscriptions/fa0607f6-0aa3-44b3-8a6f-fff871c65adc/resourceGroups/CIO-DevVMs-rg/providers/Microsoft.Compute/images/Win10InsiderPreview17093"
-  }
-  # custom_data                  = "${file("./custom.ps1")}"
+  storage_image_reference      = "/subscriptions/fa0607f6-0aa3-44b3-8a6f-fff871c65adc/resourceGroups/CIO-DevVMs-rg/providers/Microsoft.Compute/images/Win10InsiderPreview17093"
   nic_subnetName               = azurestack_subnet.paz-snet.name
   nic_vnetName                 = azurestack_virtual_network.RDS-vnet.name
   nic_vnet_resource_group_name = azurestack_resource_group.RDS-rg.name

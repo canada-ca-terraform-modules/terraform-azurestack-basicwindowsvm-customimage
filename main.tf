@@ -109,7 +109,7 @@ resource azurestack_virtual_machine VM {
     provision_vm_agent = true
   }
   storage_image_reference {
-    id = var.storage_image_reference.id
+    id = var.storage_image_reference
   }
   storage_os_disk {
     name              = "${var.name}-osdisk1"
