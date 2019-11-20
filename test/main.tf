@@ -31,10 +31,10 @@ module "cio-cust" {
   resource_group_name          = azurestack_resource_group.RDS-rg.name
   admin_username               = "azureadmin"
   admin_password               = "Canada123!"
-  vm_size                      = "Standard_F2"
+  vm_size                      = "Standard_DS2_v2"
   public_ip                    = true
   use_nic_nsg                  = false
-  storage_image_reference      = "/subscriptions/fa0607f6-0aa3-44b3-8a6f-fff871c65adc/resourceGroups/CIO-DevVMs-rg/providers/Microsoft.Compute/images/Win10InsiderPreview17093"
+  storage_image_reference      = "/subscriptions/fa0607f6-0aa3-44b3-8a6f-fff871c65adc/resourceGroups/CIO-DevVMs-rg/providers/Microsoft.Compute/images/Windows10_InsiderPreview_EnterpriseVL_x64_en-us_19013"
   nic_subnetName               = azurestack_subnet.paz-snet.name
   nic_vnetName                 = azurestack_virtual_network.RDS-vnet.name
   nic_vnet_resource_group_name = azurestack_resource_group.RDS-rg.name
